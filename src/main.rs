@@ -1,5 +1,5 @@
 use clap::{App, Arg};
-use index_bloom::index::Index;
+use cli_bloom::fs_loader::FsIndex;
 
 fn main() {
     let matches = App::new("web-bloom")
@@ -23,8 +23,8 @@ fn main() {
                    .get_matches();
 
     let mut index = match matches.value_of("restore") {
-        Some(restore_file) => Index::restore(restore_file),
-        None => Index::new()
+        Some(restore_file) => FsIndex::restore(restore_file),
+        None => FsIndex::new()
     };
     if let Some(source) = matches.value_of("source") {
         index.index(source);

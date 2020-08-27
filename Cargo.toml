@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 index-bloom = { git = "https://github.com/odespesse/index-bloom" }
 clap = "2.33.0"
+serde_json = "1.0"
+

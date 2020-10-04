@@ -220,7 +220,7 @@ mod tests {
         let mut dest_file = std::env::temp_dir();
         dest_file.push("bloom_dump.json");
         index.dump(dest_file.as_path().to_str().unwrap());
-        let expected = "{\"capacity\":5,\"error_rate\":0.1,\"bloom_filters\":{\"./test/data/simple_content.txt\":{\"key_size\":4,\"bitfield\":[true,false,false,true,false,true,true,true,true,true,true,false,true,false,false,false,true,false,false,false,false,true,false,false]}}}\n";
+        let expected = "{\"capacity\":5,\"error_rate\":0.1,\"bloom_filters\":{\"./test/data/simple_content.txt\":{\"key_size\":4,\"bitfield\":{\"head\":0,\"bits\":24,\"data\":[2168809]}}}}\n";
         let actual = fs::read_to_string(&dest_file).unwrap();
         assert_eq!(actual, expected);
         fs::remove_file(dest_file).unwrap();

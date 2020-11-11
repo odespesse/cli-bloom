@@ -24,7 +24,7 @@ fn main() {
 
     let mut index = match matches.value_of("restore") {
         Some(restore_file) => FsIndex::restore(restore_file),
-        None => FsIndex::new()
+        None => FsIndex::with_params(0.00001)
     };
     if let Some(source) = matches.value_of("source") {
         index.index(source);

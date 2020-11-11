@@ -19,9 +19,9 @@ impl FsIndex {
         }
     }
 
-    pub fn with_params(capacity: u32, error_rate: f32) -> Self {
+    pub fn with_params(error_rate: f32) -> Self {
         FsIndex {
-            index: Index::with_params(capacity, error_rate)
+            index: Index::with_params(error_rate)
         }
     }
 
@@ -52,7 +52,7 @@ impl FsIndex {
     pub fn restore(path :&str) -> Self {
         if Path::new(path).is_file() {
             let serialized = fs::read_to_string(path).expect(format!("Unable to read dump file {}", &path).as_str());
-            let deserialized: Index = serde_json::from_str(&serialized).expect("Unable to parse dump file");
+            let deserialized = Index::restore(&serialized);
             FsIndex {
                 index: deserialized
             }
@@ -215,12 +215,12 @@ mod tests {
 
     #[test]
     fn dump_index() {
-        let mut index = FsIndex::with_params(5, 0.1);
+        let mut index = FsIndex::with_params(0.1);
         index.index("./test/data/simple_content.txt");
         let mut dest_file = std::env::temp_dir();
         dest_file.push("bloom_dump.json");
         index.dump(dest_file.as_path().to_str().unwrap());
-        let expected = "{\"capacity\":5,\"error_rate\":0.1,\"bloom_filters\":{\"./test/data/simple_content.txt\":{\"key_size\":4,\"bitfield\":{\"head\":0,\"bits\":24,\"data\":[15041306]}}}}\n";
+        let expected = "{\"error_rate\":0.1,\"bloom_filters\":{\"./test/data/simple_content.txt\":{\"key_size\":4,\"bitfield\":[248,242,8],\"bitfield_size\":20}}}\n";
         let actual = fs::read_to_string(&dest_file).unwrap();
         assert_eq!(actual, expected);
         fs::remove_file(dest_file).unwrap();

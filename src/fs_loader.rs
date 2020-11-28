@@ -4,7 +4,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::io::Read;
 use std::io::Write;
-use index_bloom::index::Index;
+use index_bloom::Index;
 use crate::errors::Error;
 
 pub struct FsIndex {
@@ -13,19 +13,14 @@ pub struct FsIndex {
 
 impl FsIndex {
 
-    pub fn new() -> Self {
+    pub fn new(error_rate: f32) -> Self {
         FsIndex {
-            index: Index::new()
+            index: Index::new(error_rate)
         }
     }
 
-    pub fn with_params(error_rate: f32) -> Self {
-        FsIndex {
-            index: Index::with_params(error_rate)
-        }
-    }
 
-    pub fn index(&mut self, source: &str) {
+    pub fn ingest(&mut self, source: &str) {
         let src_path = PathBuf::from(source);
         if src_path.is_file() {
             match self.index_file(src_path) {
@@ -90,7 +85,7 @@ impl FsIndex {
         let mut content = String::new();
         let mut file = File::open(&path)?;
         file.read_to_string(&mut content)?;
-        self.index.index(path.to_str().unwrap().to_string(), &content)?;
+        self.index.ingest(path.to_str().unwrap().to_string(), &content)?;
         Ok(())
     }
 }
@@ -101,15 +96,15 @@ mod tests {
 
     #[test]
     fn index_source_is_file() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/simple_content.txt");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/simple_content.txt");
         assert_eq!(vec!["./test/data/simple_content.txt"], index.search("word1").unwrap());
     }
 
     #[test]
     fn index_source_is_directory() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/simple_directory");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/simple_directory");
         assert_eq!(vec!["./test/data/simple_directory/file1.txt"], index.search("word1").unwrap());
         assert_eq!(vec!["./test/data/simple_directory/file2.txt"], index.search("word4").unwrap());
     }
@@ -117,28 +112,28 @@ mod tests {
     #[test]
     #[should_panic(expected="Error source must be an UTF-8 text file")]
     fn index_source_is_binary_file() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/image_file.png");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/image_file.png");
     }
 
     #[test]
     #[should_panic(expected="source type must be file or directory")]
     fn index_source_is_unsupported() {
-        let mut index = FsIndex::new();
-        index.index("./test/unknown_source");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/unknown_source");
     }
 
     #[test]
     fn index_source_is_directory_with_mixed_content() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/directory_with_mixed_content");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/directory_with_mixed_content");
         assert_eq!(vec!["./test/data/directory_with_mixed_content/simple_content.txt"], index.search("word1").unwrap());
     }
 
     #[test]
     fn file_simple_content() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/simple_content.txt");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/simple_content.txt");
         assert_eq!(vec!["./test/data/simple_content.txt"], index.search("word1").unwrap());
         assert_eq!(vec!["./test/data/simple_content.txt"], index.search("word2").unwrap());
         assert_eq!(vec!["./test/data/simple_content.txt"], index.search("word3").unwrap());
@@ -147,8 +142,8 @@ mod tests {
 
     #[test]
     fn simple_directory_content() {
-       let mut index = FsIndex::new();
-       index.index("./test/data/simple_directory");
+       let mut index = FsIndex::new(0.01);
+       index.ingest("./test/data/simple_directory");
        assert_eq!(vec!["./test/data/simple_directory/file1.txt"], index.search("word1").unwrap());
        assert_eq!(vec!["./test/data/simple_directory/file1.txt"], index.search("word2").unwrap());
        assert_eq!(vec!["./test/data/simple_directory/file1.txt"], index.search("word3").unwrap());
@@ -158,8 +153,8 @@ mod tests {
 
     #[test]
     fn random_directory_content() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/random_directory");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/random_directory");
         assert_eq!(vec!["./test/data/random_directory/file1.txt"], index.search("word1").unwrap());
         assert_eq!(vec!["./test/data/random_directory/file1.txt"], index.search("word2").unwrap());
         assert_eq!(vec!["./test/data/random_directory/file1.txt"], index.search("word3").unwrap());
@@ -169,8 +164,8 @@ mod tests {
 
     #[test]
     fn several_matches() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/several_matches_directory");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/several_matches_directory");
         let expected = vec!["./test/data/several_matches_directory/file1.txt"];
         assert_eq!(expected, index.search("word2").unwrap());
         let expected = vec!["./test/data/several_matches_directory/file1.txt", "./test/data/several_matches_directory/file2.txt"];
@@ -180,16 +175,16 @@ mod tests {
 
     #[test]
     fn multi_keywords_search() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/several_matches_directory");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/several_matches_directory");
         let expected = vec!["./test/data/several_matches_directory/file1.txt"];
         assert_eq!(expected, index.search("word1 word2").unwrap());
     }
 
     #[test]
     fn clean_keywords_before_search() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/simple_directory");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/simple_directory");
         let expected = vec!["./test/data/simple_directory/file1.txt"];
         assert_eq!(index.search("(word1) Word2, word3?").unwrap(), expected);
     }
@@ -215,8 +210,8 @@ mod tests {
 
     #[test]
     fn dump_index() {
-        let mut index = FsIndex::with_params(0.1);
-        index.index("./test/data/simple_content.txt");
+        let mut index = FsIndex::new(0.1);
+        index.ingest("./test/data/simple_content.txt");
         let mut dest_file = std::env::temp_dir();
         dest_file.push("bloom_dump.json");
         index.dump(dest_file.as_path().to_str().unwrap());
@@ -229,8 +224,8 @@ mod tests {
     #[test]
     #[should_panic(expected="Impossible to create dump file ./test/data")]
     fn dump_in_directory() {
-        let mut index = FsIndex::new();
-        index.index("./test/data/simple_content.txt");
+        let mut index = FsIndex::new(0.01);
+        index.ingest("./test/data/simple_content.txt");
         index.dump("./test/data");
     }
 }

@@ -5,6 +5,6 @@ authors = ["Olivier Despesse <olived19@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-index-bloom = { git = "https://github.com/odespesse/index-bloom" }
+index-bloom = { git = "https://github.com/odespesse/index-bloom", version = "1.0.0" }
 clap = "2.33.0"
 serde_json = "1.0"

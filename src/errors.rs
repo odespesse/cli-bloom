@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 use std::io;
 use std::fmt;
-use index_bloom::errors::Error as IndexBloomError;
+use index_bloom::Error as IndexBloomError;
 
 #[derive(Debug)]
 pub enum Error {

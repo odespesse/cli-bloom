@@ -2,9 +2,9 @@ use clap::{App, Arg};
 use cli_bloom::FsIndex;
 
 fn main() {
-    let matches = App::new("web-bloom")
+    let matches = App::new("cli-bloom")
                    .version("1.0")
-                   .about("A lightweight search engine for the Web.")
+                   .about("A command line app to manage a bloom index.")
                    .arg(Arg::with_name("source")
                         .short("s")
                         .long("source")

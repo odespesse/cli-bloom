@@ -1,8 +1,12 @@
 [package]
 name = "cli-bloom"
+description = "A command line app to manage a bloom index."
 version = "0.2.0"
 authors = ["Olivier Despesse <olived19@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/odespesse/cli-bloom"
+readme = "README.md"
+keywords = ["bloom-filter", "search-engine", "cli"]
 
 [dependencies]
 index-bloom = { git = "https://github.com/odespesse/index-bloom", version = "1.0.0" }
